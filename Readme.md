@@ -23,34 +23,27 @@ promising, despite the MS-inspired name.
 Flex your rights, or lose them.
 
 ## What's this?
-This is a tool I wrote to take [this hack](https://coderwall.com/p/duapqq/use-a-google-spreadsheet-as-your-json-backend)
-and convert the output data into something practical, because as given
-it's headache-inducing.
+GDocs provide [JSON output, kinda](https://coderwall.com/p/duapqq/use-a-google-spreadsheet-as-your-json-backend),
+in an undocumented way. This is a tool in Python and Go forms that can pull
+data from published GDocs sheets and turn it into somewhat cleaner JSON.
 
-This will probably break on edge-cases, and perhaps even simple things like
-some formulas. As usual this comes with no warranties or promises. In my
-tiny testing, using straightforward formulas does not affect this, as Google
-merely sets the exported value to the calculated value from the sheet. So,
-if a cell contains `=sum(A1:A5)` but the visible value is 60, then the value
-in the returned JSON will be 60.
+This is also a freeboard datasource plugin for same, which was the original
+inspiration for the idea. To enable the freeboard plugin, just open the
+"Developer Console" and add this plugin script URL:
 
-Please also note that field titles are derived from the first line, but
+`https://raw.githubusercontent.com/cathalgarvey/gdocstojson/master/freeboardplugin/freeboardplugin.min.js`
+
+..then add a new datasource and there should be a new option for Google Sheets.
+You must publish the sheet online as a HTML file first, from Sheets->File->Publish..,
+and doing so will make the raw data technically available to anyone with the URL, and
+therefore also anyone who sees the dashboard. So, bear that in mind.
+
+I'm working on a version of this for Ethercalc also; hold out for that for new
+or collaborative projects because it's less toxic than Google by a long shot.
+Also, unlike Google, it doesn't completely mangle your column headers:
+note that field titles are derived from the first line, but
 in lowercase with spaces removed. So if the title is "Number of Pets",
 the field title in the JSON will be "numberofpets". This is on Google,
 not me!
-
-This can also be used as a library, either using the single-call entrypoint
-or using the component functions (all documented) with your preferred HTTP
-library (internally, this uses github.com/cathalgarvey/ultralite for http):
-
-```python
-# Use built-in HTTP method to fetch data directly.
-# Returns a list of dicts.
-data = fetchCleanFeed(myDocsURL)
-# Use some other http library and convert the resulting data:
-rawData = someHTTPFunc(myDocsURL)
-rawJSON = json.loads(rawData)
-data = convertFeed(rawJSON)
-```
 
 Enjoy, if you must!
