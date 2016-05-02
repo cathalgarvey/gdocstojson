@@ -3,14 +3,23 @@ package gdocstojson
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
-	"net/http"
 	"strings"
 )
 
 var (
 	// ErrURLParseFailure is returned when parsing of URL fails.
 	ErrURLParseFailure = errors.New("Failed to parse JSON Url from Doc URL")
+)
+
+var (
+	// PreferredGetter is a global function that is
+	// used to fetch resources. By default this is set
+	// to use HTTPGet, a simple function using standard
+	// library functions, but when compiled with gopherjs
+	// it uses XHR instead. This approach is used to de-bloat
+	// the emitted JS, because including HTTP leads to many
+	// HTTP and crypto libraries being pulled in!
+	PreferredGetter func(URL string) (body []byte, err error)
 )
 
 // DocURLToJSONURL converts a html doc URL to a JSON URL
@@ -43,17 +52,12 @@ type GJSON struct {
 }
 
 // JSONFromDocURL takes a doc URL and returns the parsed raw Google-JSON map.
-func JSONFromDocURL(docURL string) ([]map[string]interface{}, error) {
+func JSONFromDocURL(docURL string, httpGetter func(string) ([]byte, error)) ([]map[string]interface{}, error) {
 	jsonURL := DocURLToJSONURL(docURL)
 	if jsonURL == "" {
 		return nil, ErrURLParseFailure
 	}
-	resp, err := http.Get(jsonURL)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := httpGetter(jsonURL)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +73,7 @@ func JSONFromDocURL(docURL string) ([]map[string]interface{}, error) {
 // GetSaneGDocsJSON returns a sanity-preserving
 // rearrangement of the raw JSON googledocs provides.
 func GetSaneGDocsJSON(htmlDocURL string) ([]map[string]string, error) {
-	insaneJSON, err := JSONFromDocURL(htmlDocURL)
+	insaneJSON, err := JSONFromDocURL(htmlDocURL, PreferredGetter)
 	if err != nil {
 		return nil, err
 	}
