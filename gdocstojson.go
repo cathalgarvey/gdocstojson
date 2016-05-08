@@ -1,9 +1,11 @@
 package gdocstojson
 
 import (
-	"encoding/json"
 	"errors"
 	"strings"
+
+	//"encoding/json"
+	"github.com/kurrik/json"
 )
 
 var (
